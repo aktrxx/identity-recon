@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from app.database import SessionLocal
 from app import crud, schemas, models
 
+
 router = APIRouter()
 
 def get_db():
@@ -25,3 +26,20 @@ def identify(payload: schemas.IdentifyRequest, db: Session = Depends(get_db)):
                 "secondaryContactIds": []
             }
     }
+
+@router.get("/contacts")
+def list_all_contacts(db: Session = Depends(get_db)):
+    contacts = crud.get_all_contacts(db)
+    return [
+        {
+            "id": c.id,
+            "email": c.email,
+            "phoneNumber": c.phoneNumber,
+            "linkedId": c.linkedId,
+            "linkPrecedence": c.linkPrecedence,
+            "createdAt": str(c.createdAt),
+            "updatedAt": str(c.updatedAt),
+            "deletedAt": str(c.deletedAt) if c.deletedAt else None
+        }
+        for c in contacts
+    ]

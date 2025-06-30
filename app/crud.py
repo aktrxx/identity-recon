@@ -16,3 +16,7 @@ def create_contact(db: Session, email: str = None, phone: str = None, linked_id:
     db.commit()
     db.refresh(contact)
     return contact
+
+
+def get_all_contacts(db: Session):
+    return db.query(models.Contact).all()
