@@ -4,6 +4,10 @@ from app.database import SessionLocal
 from app import crud, schemas, models
 
 
+from datetime import datetime, timedelta, timezone
+
+FUTURE_DATE = datetime.max.replace(tzinfo=timezone.utc)
+
 router = APIRouter()
 
 def get_db():
@@ -31,7 +35,7 @@ def identify(payload: schemas.IdentifyRequest, db: Session = Depends(get_db)):
                 }
         }
     
-    primary = min(related, key=lambda c: c.createdAt if c.linkPrecedence == "primary" else float("inf"))
+    primary = min(related, key=lambda c: c.createdAt if c.linkPrecedence == "primary" else FUTURE_DATE)
 
     all_contacts = set()
     for contact in related:
@@ -79,3 +83,9 @@ def list_all_contacts(db: Session = Depends(get_db)):
         }
         for c in contacts
     ]
+
+@router.delete("/contacts/clear")
+def clear_all_contacts(db: Session = Depends(get_db)):
+    db.query(models.Contact).delete()
+    db.commit()
+    return {"message": "All contacts deleted successfully"}
