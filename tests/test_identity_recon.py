@@ -3,7 +3,7 @@ import json
 import random
 import string
 
-BASE_URL = "http://localhost:8000/identify"
+BASE_URL = ""
 
 NAME1 = ''.join(random.choices(string.ascii_letters + string.digits, k=6))
 PHNO1 = ''.join(random.choices(string.digits, k=10))
