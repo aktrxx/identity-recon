@@ -4,6 +4,7 @@ import random
 import string
 
 BASE_URL = ""
+BASE_URL += "identify" if BASE_URL[-1] == "/" else "/identify"
 
 NAME1 = ''.join(random.choices(string.ascii_letters + string.digits, k=6))
 PHNO1 = ''.join(random.choices(string.digits, k=10))
