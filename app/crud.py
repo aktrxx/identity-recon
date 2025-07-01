@@ -3,7 +3,13 @@ from app import models
 from sqlalchemy import or_
 
 def find_related_contacts(db: Session, email: str = None, phone: str = None):
-    pass
+    return db.query(models.Contact).filter(
+        or_(
+            models.Contact.email == email,
+            models.Contact.phoneNumber == phone
+        )
+    ).all()
+
 
 def create_contact(db: Session, email: str = None, phone: str = None, linked_id: int = None, is_primary=True):
     contact = models.Contact(
@@ -20,3 +26,10 @@ def create_contact(db: Session, email: str = None, phone: str = None, linked_id:
 
 def get_all_contacts(db: Session):
     return db.query(models.Contact).all()
+
+
+def update_contact_to_secondary(db: Session, contact: models.Contact, primary_id: int):
+    contact.linkPrecedence = "secondary"
+    contact.linkedId = primary_id
+    db.commit()
+    db.refresh(contact)

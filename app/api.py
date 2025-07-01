@@ -17,15 +17,51 @@ def get_db():
 def identify(payload: schemas.IdentifyRequest, db: Session = Depends(get_db)):
     email = payload.email
     phone = payload.phoneNumber
-    new_contact = crud.create_contact(db, email=email, phone=phone)
+
+    related = crud.find_related_contacts(db, email=email, phone=phone)
+
+    if not related:
+        new_contact = crud.create_contact(db, email=email, phone=phone)
+        return {
+                "contact": {
+                    "primaryContatctId": new_contact.id,
+                    "emails": [new_contact.email] if new_contact.email else [],
+                    "phoneNumbers": [new_contact.phoneNumber] if new_contact.phoneNumber else [],
+                    "secondaryContactIds": []
+                }
+        }
+    
+    primary = min(related, key=lambda c: c.createdAt if c.linkPrecedence == "primary" else float("inf"))
+
+    all_contacts = set()
+    for contact in related:
+        if contact.linkPrecedence == "primary" and contact.id != primary.id:
+            crud.update_contact_to_secondary(db, contact, primary.id)
+        all_contacts.add(contact)
+
+    existing_emails = {c.email for c in all_contacts if c.email}
+    existing_phones = {c.phoneNumber for c in all_contacts if c.phoneNumber}
+
+    new_secondary = None
+    if (email and email not in existing_emails) or (phone and phone not in existing_phones):
+        new_secondary = crud.create_contact(db, email=email, phone=phone, linked_id=primary.id, is_primary=False)
+        all_contacts.add(new_secondary)
+
+
+    emails = list({c.email for c in all_contacts if c.email})
+    phones = list({c.phoneNumber for c in all_contacts if c.phoneNumber})
+    secondaries = [c.id for c in all_contacts if c.linkPrecedence == "secondary"]
+
     return {
-            "contact": {
-                "primaryContatctId": new_contact.id,
-                "emails": [new_contact.email] if new_contact.email else [],
-                "phoneNumbers": [new_contact.phoneNumber] if new_contact.phoneNumber else [],
-                "secondaryContactIds": []
-            }
+        "contact": {
+            "primaryContatctId": primary.id,
+            "emails": [primary.email] + [e for e in emails if e != primary.email],
+            "phoneNumbers": [primary.phoneNumber] + [p for p in phones if p != primary.phoneNumber],
+            "secondaryContactIds": secondaries
+        }
     }
+
+
 
 @router.get("/contacts")
 def list_all_contacts(db: Session = Depends(get_db)):
