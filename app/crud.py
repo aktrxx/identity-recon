@@ -1,14 +1,31 @@
 from sqlalchemy.orm import Session
 from app import models
 from sqlalchemy import or_
+from app.models import Contact
 
-def find_related_contacts(db: Session, email: str = None, phone: str = None):
-    return db.query(models.Contact).filter(
+def find_related_contacts(db, email=None, phone=None):
+    contacts = db.query(Contact).filter(
         or_(
-            models.Contact.email == email,
-            models.Contact.phoneNumber == phone
+            Contact.email == email,
+            Contact.phoneNumber == phone
         )
     ).all()
+
+    
+    if not contacts:
+        return []
+    root_ids = set()
+    for c in contacts:
+        root_ids.add(c.id if c.linkPrecedence == "primary" else c.linkedId)
+    all_related = db.query(Contact).filter(
+        or_(
+            Contact.id.in_(root_ids),
+            Contact.linkedId.in_(root_ids)
+        )
+    ).all()
+
+    return all_related
+
 
 
 def create_contact(db: Session, email: str = None, phone: str = None, linked_id: int = None, is_primary=True):

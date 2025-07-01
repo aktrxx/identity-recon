@@ -83,9 +83,3 @@ def list_all_contacts(db: Session = Depends(get_db)):
         }
         for c in contacts
     ]
-
-@router.delete("/contacts/clear")
-def clear_all_contacts(db: Session = Depends(get_db)):
-    db.query(models.Contact).delete()
-    db.commit()
-    return {"message": "All contacts deleted successfully"}

@@ -1,69 +1,80 @@
 import requests
 import json
+import random
+import string
 
 BASE_URL = "http://localhost:8000/identify"
+
+NAME1 = ''.join(random.choices(string.ascii_letters + string.digits, k=6))
+PHNO1 = ''.join(random.choices(string.digits, k=10))
+NAME2 = ''.join(random.choices(string.ascii_letters + string.digits, k=6))
+NAME3 = ''.join(random.choices(string.ascii_letters + string.digits, k=6))
+NAME4 = ''.join(random.choices(string.ascii_letters + string.digits, k=6))
+PHNO2 = ''.join(random.choices(string.digits, k=10))
+PHNO3 = ''.join(random.choices(string.digits, k=10))
+PHNO4 = ''.join(random.choices(string.digits, k=10))
 
 test_cases = [
     {
         "name": "Case 1: New Contact — Alice",
-        "data": {"email": "alice@domain.com", "phoneNumber": "9991110001"},
+        "data": {"email": f"{NAME1}@domain.com", "phoneNumber": PHNO1},
         "expected": {
-            "emails": ["alice@domain.com"],
-            "phoneNumbers": ["9991110001"],
+            "emails": [f"{NAME1}@domain.com"],
+            "phoneNumbers": [PHNO1],
             "secondaryContactIds": []
         }
     },
     {
         "name": "Case 2: Same Phone as Alice (phone only)",
-        "data": {"email":"", "phoneNumber": "9991110001"},
+        "data": {"email":"", "phoneNumber": PHNO1},
         "expected": {
-            "emails": ["alice@domain.com"],
-            "phoneNumbers": ["9991110001"],
+            "emails": [f"{NAME1}@domain.com"],
+            "phoneNumbers": [PHNO1],
             "secondaryContactIds": []
         }
     },
     {
         "name": "Case 3: New Email + Alice’s Phone — Bob",
-        "data": {"email": "bob@domain.com", "phoneNumber": "9991110001"},
+        "data": {"email": f"{NAME2}@domain.com", "phoneNumber": PHNO1},
         "expected": {
-            "emails": ["alice@domain.com", "bob@domain.com"],
-            "phoneNumbers": ["9991110001"],
+            "emails": [f"{NAME1}@domain.com", f"{NAME2}@domain.com"],
+            "phoneNumbers": [PHNO1],
             "secondaryContactIds": [2]
         }
     },
     {
         "name": "Case 4: Bob again — same email, new phone",
-        "data": {"email": "bob@domain.com", "phoneNumber": "9992223333"},
+        "data": {"email": f"{NAME2}@domain.com", "phoneNumber": PHNO2},
         "expected": {
-            "emails": ["alice@domain.com", "bob@domain.com"],
-            "phoneNumbers": ["9991110001", "9992223333"],
+            "emails": [f"{NAME1}@domain.com", f"{NAME2}@domain.com"],
+            "phoneNumbers": [PHNO1, PHNO2],
             "secondaryContactIds": [2, 3]
         }
     },
     {
         "name": "Case 5: Charlie — new contact",
-        "data": {"email": "charlie@domain.com", "phoneNumber": "7777777777"},
+        "data": {"email": f"{NAME3}@domain.com", "phoneNumber": PHNO3},
         "expected": {
-            "emails": ["charlie@domain.com"],
-            "phoneNumbers": ["7777777777"],
+            "emails": [f"{NAME3}@domain.com"],
+            "phoneNumbers": [PHNO3],
             "secondaryContactIds": []
         }
     },
     {
         "name": "Case 6: David — new contact",
-        "data": {"email": "david@domain.com", "phoneNumber": "8888888888"},
+        "data": {"email": f"{NAME4}@domain.com", "phoneNumber": PHNO4},
         "expected": {
-            "emails": ["david@domain.com"],
-            "phoneNumbers": ["8888888888"],
+            "emails": [f"{NAME4}@domain.com"],
+            "phoneNumbers": [PHNO4],
             "secondaryContactIds": []
         }
     },
     {
         "name": "Case 7: Merge Charlie + David",
-        "data": {"email": "charlie@domain.com", "phoneNumber": "8888888888"},
+        "data": {"email": f"{NAME3}@domain.com", "phoneNumber": PHNO4},
         "expected": {
-            "emails": ["charlie@domain.com", "david@domain.com"],
-            "phoneNumbers": ["7777777777", "8888888888"],
+            "emails": [f"{NAME3}@domain.com", f"{NAME4}@domain.com"],
+            "phoneNumbers": [PHNO3, PHNO4],
             "secondaryContactIds": [6]
         }
     }
